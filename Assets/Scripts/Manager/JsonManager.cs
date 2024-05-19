@@ -8,6 +8,8 @@ using UnityEngine.UI;
 
 public class JsonManager
 {
+    public static string DEFAULT_GAMEFILE_DATA_NAME = "DataTable_GameFile";
+    
     public static void CreateJsonFile(string fileName, object obj)
     {
         // 데이터 폴더가 없다면 생성하기
