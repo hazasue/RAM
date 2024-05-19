@@ -9,10 +9,13 @@ public class GameFileManager : MonoBehaviour
     private Dictionary<int, GameFile> files;
     private GameFile currentGameFile;
     
+    public Transform gameFileTransform;
+    
     // Start is called before the first frame update
     void Awake()
     {
         init();
+
     }
 
     // Update is called once per frame
@@ -31,6 +34,14 @@ public class GameFileManager : MonoBehaviour
         else
         {
             files = JsonManager.LoadJsonFile<Dictionary<int, GameFile>>(JsonManager.DEFAULT_GAMEFILE_DATA_NAME);
+        }
+        createGameFile();
+
+        foreach (GameFile file in files.Values)
+        {
+            GameFileInstance tempFile =
+                Instantiate(Resources.Load<GameFileInstance>("prefabs/GameFile"), gameFileTransform, true);
+            tempFile.Init(file.id, file.name, file.description);
         }
     }
 
