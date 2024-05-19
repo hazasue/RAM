@@ -2,7 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Node : MonoBehaviour
+[System.Serializable]
+public class Node
 {
     public int file;
     public float time;
@@ -11,15 +12,13 @@ public class Node : MonoBehaviour
     public int animationIdx;
     public string sfxPath;
 
-    // Start is called before the first frame update
-    void Start()
+    public Node(int file, float time, KeyCode key, int targetCharacter, int animationIdx, string sfxPath)
     {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
+        this.file = file;
+        this.time = time;
+        this.key = key;
+        this.targetCharacter = targetCharacter;
+        this.animationIdx = animationIdx;
+        this.sfxPath = sfxPath;
     }
 }
