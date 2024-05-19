@@ -2,22 +2,19 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class GameFile : MonoBehaviour
+[System.Serializable]
+public class GameFile
 {
     public int id;
     public string name;
     public string description;
-    public AudioClip bgm;
-    
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
+    public string bgmPath;
 
-    // Update is called once per frame
-    void Update()
+    public GameFile(int id, string name, string description, string bgmPath)
     {
-        
+        this.id = id;
+        this.name = name;
+        this.description = description;
+        this.bgmPath = bgmPath;
     }
 }
