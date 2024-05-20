@@ -6,8 +6,10 @@ using UnityEngine.UI;
 
 public class GameFileManager : MonoBehaviour
 {
+    private static GameFileManager instance;
+    
     private Dictionary<int, GameFile> files;
-    private GameFile currentGameFile;
+    public static int currentFileKey;
     
     public Transform gameFileTransform;
     
@@ -23,6 +25,14 @@ public class GameFileManager : MonoBehaviour
     {
         
     }
+    
+    public static GameFileManager GetInstance()
+    {
+        if (instance != null) return instance;
+        instance = FindObjectOfType<GameFileManager>();
+        if (instance == null) Debug.Log("There's no active GameFileManager object");
+        return instance;
+    }
 
     private void init()
     {
@@ -35,8 +45,37 @@ public class GameFileManager : MonoBehaviour
         {
             files = JsonManager.LoadJsonFile<Dictionary<int, GameFile>>(JsonManager.DEFAULT_GAMEFILE_DATA_NAME);
         }
-        createGameFile();
 
+        instantiateGameFileObjects();
+
+        currentFileKey = -1;
+        instance = this;
+        DontDestroyOnLoad(this.gameObject);
+    }
+
+    public void CreateGameFile(string name, string description, string path)
+    {
+        int tempKey = 0;
+        foreach (int key in files.Keys)
+        {
+            if (tempKey < key) tempKey = key;
+        }
+
+        files.Add(++tempKey, new GameFile(tempKey, name, description, path));
+        JsonManager.CreateJsonFile(JsonManager.DEFAULT_GAMEFILE_DATA_NAME, files);
+
+        currentFileKey = tempKey;
+
+        instantiateGameFileObjects();
+    }
+
+    private void instantiateGameFileObjects()
+    {
+        for (int i = gameFileTransform.childCount - 1; i >= 0; i--)
+        {
+            Destroy(gameFileTransform.GetChild(i).gameObject);
+        }
+        
         foreach (GameFile file in files.Values)
         {
             GameFileInstance tempFile =
@@ -45,20 +84,8 @@ public class GameFileManager : MonoBehaviour
         }
     }
 
-    private void createGameFile()
+    public void LoadGameFile()
     {
-        int tempKey = 0;
-        foreach (int key in files.Keys)
-        {
-            if (tempKey < key) tempKey = key;
-        }
-
-        files.Add(++tempKey, new GameFile(tempKey, "", "", ""));
-        JsonManager.CreateJsonFile(JsonManager.DEFAULT_GAMEFILE_DATA_NAME, files);
-    }
-
-    private void loadGameFile()
-    {
-        
+        Debug.Log(currentFileKey);
     }
 }
