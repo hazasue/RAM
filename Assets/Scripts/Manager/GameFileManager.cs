@@ -36,6 +36,16 @@ public class GameFileManager : MonoBehaviour
 
     private void init()
     {
+        initBasicFiles();
+        
+        instantiateGameFileObjects();
+
+        currentFileKey = -1;
+        instance = this;
+    }
+
+    private void initBasicFiles()
+    {
         if(!File.Exists(Application.dataPath + "/Data/" + JsonManager.DEFAULT_GAMEFILE_DATA_NAME + ".json"))
         {
             files = new Dictionary<int, GameFile>();
@@ -55,14 +65,24 @@ public class GameFileManager : MonoBehaviour
         {
             JsonManager.CreateJsonFile(JsonManager.DEFAULT_NODE_DATA_NAME, new List<Node>());
         }
-
-        instantiateGameFileObjects();
-
-        currentFileKey = -1;
-        instance = this;
+        
+        if (!File.Exists(Application.dataPath + "/Resources/bgms/"))
+        {
+            Directory.CreateDirectory(Application.dataPath + "/Resources/bgms/");
+        }
+        
+        if (!File.Exists(Application.dataPath + "/Resources/sfxs/"))
+        {
+            Directory.CreateDirectory(Application.dataPath + "/Resources/sfxs/");
+        }
+        
+        if (!File.Exists(Application.dataPath + "/Resources/chars/"))
+        {
+            Directory.CreateDirectory(Application.dataPath + "/Resources/chars/");
+        }
     }
 
-    public void CreateGameFile(string name, string description, string path)
+    public void CreateGameFile(string name, string path, string cnl, string cnr)
     {
         int tempKey = 0;
         foreach (int key in files.Keys)
@@ -70,7 +90,7 @@ public class GameFileManager : MonoBehaviour
             if (tempKey < key) tempKey = key;
         }
 
-        files.Add(++tempKey, new GameFile(tempKey, name, description, path));
+        files.Add(++tempKey, new GameFile(tempKey, name, path, cnl, cnr));
         JsonManager.CreateJsonFile(JsonManager.DEFAULT_GAMEFILE_DATA_NAME, files);
 
         currentFileKey = tempKey;
@@ -89,7 +109,7 @@ public class GameFileManager : MonoBehaviour
         {
             GameFileInstance tempFile =
                 Instantiate(Resources.Load<GameFileInstance>("prefabs/GameFile"), gameFileTransform, true);
-            tempFile.Init(file.id, file.name, file.description);
+            tempFile.Init(file.id, file.name);
         }
     }
 
