@@ -11,19 +11,15 @@ public class UIManager : MonoBehaviour
     public Slider progress;
     public Slider hp;
     public TMP_Text timer;
-    
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
 
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
-    
+    public TMP_Text score;
+
+    public RawImage leftChar;
+    public RawImage rightChar;
+
+    private string cnl;
+    private string cnr;
+
     public static UIManager GetInstance()
     {
         if (instance != null) return instance;
@@ -39,5 +35,20 @@ public class UIManager : MonoBehaviour
     public void UpdateTimer(float time)
     {
         timer.text = $"{((int)(time / 60)).ToString("D2")} : {((int)(time % 60)).ToString("D2")} : {((int)(time % 1f * 100f)).ToString("D2")}";
+    }
+
+    public void UpdateScore(int excellentCount, int goodCount, int badCount, int missCount)
+    {
+        score.text =
+            $"{excellentCount.ToString("D3")} : {goodCount.ToString("D3")} : {badCount.ToString("D3")} : {missCount.ToString("D3")}";
+    }
+
+    public void InitCharSprite(string cnl, string cnr)
+    {
+        this.cnl = cnl;
+        this.cnr = cnr;
+        
+        leftChar.texture = Resources.Load<Texture>($"chars/{cnl}_idle");
+        rightChar.texture = Resources.Load<Texture>($"chars/{cnr}_idle");
     }
 }
