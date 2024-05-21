@@ -9,6 +9,8 @@ using UnityEngine.UI;
 public class JsonManager
 {
     public static string DEFAULT_GAMEFILE_DATA_NAME = "DataTable_GameFile";
+    public static string DEFAULT_CURRENT_INFO_NAME = "CurrentInfo";
+    public static string DEFAULT_NODE_DATA_NAME = "DataTable_Node";
     
     public static void CreateJsonFile(string fileName, object obj)
     {
