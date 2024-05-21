@@ -11,9 +11,10 @@ public class LobbyManager : MonoBehaviour
     public GameObject createScreen;
 
     public TMP_InputField name;
-    public TMP_InputField description;
     public TMP_InputField bgmPath;
-    
+    public TMP_InputField cnl;
+    public TMP_InputField cnr;
+
     
     // Start is called before the first frame update
     void Awake()
@@ -65,10 +66,11 @@ public class LobbyManager : MonoBehaviour
 
     public void CreateFile()
     {
-        GameFileManager.GetInstance().CreateGameFile(name.text, description.text, bgmPath.text);
+        GameFileManager.GetInstance().CreateGameFile(name.text, bgmPath.text, cnl.text, cnr.text);
         name.text = "";
-        description.text = "";
         bgmPath.text = "";
+        cnl.text = "";
+        cnr.text = "";
     }
 
     public void PopScreen()
