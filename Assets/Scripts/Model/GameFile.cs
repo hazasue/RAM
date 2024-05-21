@@ -7,14 +7,16 @@ public class GameFile
 {
     public int id;
     public string name;
-    public string description;
-    public string bgmPath;
+    public string bgmName;
+    public string charNameLeft;
+    public string charNameRight;
 
-    public GameFile(int id, string name, string description, string bgmPath)
+    public GameFile(int id, string name, string bgmName, string charNameLeft, string charNameRight)
     {
         this.id = id;
         this.name = name;
-        this.description = description;
-        this.bgmPath = bgmPath;
+        this.bgmName = bgmName;
+        this.charNameLeft = charNameLeft;
+        this.charNameRight = charNameRight;
     }
 }
