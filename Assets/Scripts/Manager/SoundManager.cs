@@ -4,7 +4,9 @@ using UnityEngine;
 
 public class SoundManager : MonoBehaviour
 {
-    private AudioSource audioSource;
+    private static SoundManager instance;
+    
+    public AudioSource audioSource;
 
     private AudioClip bgm;
     private List<AudioClip> sfxs;
@@ -14,14 +16,27 @@ public class SoundManager : MonoBehaviour
     {
         init();
     }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
     
-    private void init() {}
+    public static SoundManager GetInstance()
+    {
+        if (instance != null) return instance;
+        instance = FindObjectOfType<SoundManager>();
+        if (instance == null) Debug.Log("There's no active SoundManager object");
+        return instance;
+    }
+
+    private void init()
+    {
+        instance = this;
+    }
+
+    public void InitBgm(string path)
+    {
+        bgm = Resources.Load<AudioClip>($"bgms/{path}");
+        audioSource.clip = bgm;
+    }
+
+    public void PlayBgm() { audioSource.Play(); }
     
     public void PlaySfx(AudioClip audioClip) {}
 }
