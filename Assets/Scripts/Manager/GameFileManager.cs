@@ -46,11 +46,20 @@ public class GameFileManager : MonoBehaviour
             files = JsonManager.LoadJsonFile<Dictionary<int, GameFile>>(JsonManager.DEFAULT_GAMEFILE_DATA_NAME);
         }
 
+        if (!File.Exists(Application.dataPath + "/Data/" + JsonManager.DEFAULT_CURRENT_INFO_NAME + ".json"))
+        {
+            JsonManager.CreateJsonFile(JsonManager.DEFAULT_CURRENT_INFO_NAME, new CurrentInfo(-1, false));
+        }
+
+        if (!File.Exists(Application.dataPath + "/Data/" + JsonManager.DEFAULT_NODE_DATA_NAME + ".json"))
+        {
+            JsonManager.CreateJsonFile(JsonManager.DEFAULT_NODE_DATA_NAME, new List<Node>());
+        }
+
         instantiateGameFileObjects();
 
         currentFileKey = -1;
         instance = this;
-        DontDestroyOnLoad(this.gameObject);
     }
 
     public void CreateGameFile(string name, string description, string path)
@@ -65,8 +74,8 @@ public class GameFileManager : MonoBehaviour
         JsonManager.CreateJsonFile(JsonManager.DEFAULT_GAMEFILE_DATA_NAME, files);
 
         currentFileKey = tempKey;
-
-        instantiateGameFileObjects();
+        
+        JsonManager.CreateJsonFile(JsonManager.DEFAULT_CURRENT_INFO_NAME, new CurrentInfo(currentFileKey, true));
     }
 
     private void instantiateGameFileObjects()
@@ -86,6 +95,6 @@ public class GameFileManager : MonoBehaviour
 
     public void LoadGameFile()
     {
-        Debug.Log(currentFileKey);
+        JsonManager.CreateJsonFile(JsonManager.DEFAULT_CURRENT_INFO_NAME, new CurrentInfo(currentFileKey, false));
     }
 }
