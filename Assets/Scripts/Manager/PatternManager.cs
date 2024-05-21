@@ -25,8 +25,6 @@ public class PatternManager : MonoBehaviour
     public const float DEFAULT_GOOD_STANDARD = 0.1f;
     public const float DEFAULT_EXCELLENT_STANDARD = 0.075f;
 
-    
-    
     private GameFile file;
     private int combo;
     private float maxHp;
@@ -37,6 +35,11 @@ public class PatternManager : MonoBehaviour
     private List<Node> currentNodes;
     private Dictionary<KeyCode, Queue<NodeInstance>> inGameNodes;
     private List<Character> characters;
+
+    private int excellentCount;
+    private int goodCount;
+    private int badCount;
+    private int missCount;
 
     public NodeInstance nodePrefab;
     public Transform nodeTransform;
@@ -58,7 +61,7 @@ public class PatternManager : MonoBehaviour
     void Update()
     {
         if (paused) pausedTime += Time.deltaTime;
-        else
+        else if (Time.time - pausedTime >= 0f)
         {
             UIManager.GetInstance().UpdateTimer(Time.time - pausedTime);
         }
@@ -93,6 +96,12 @@ public class PatternManager : MonoBehaviour
         pausedTime = Time.time;
         paused = true;
         instance = this;
+        SoundManager.GetInstance().InitBgm(file.bgmName);
+
+        excellentCount = 0;
+        goodCount = 0;
+        badCount = 0;
+        missCount = 0;
         
         if (tempInfo.createMode) initMaking();
         else
@@ -158,9 +167,11 @@ public class PatternManager : MonoBehaviour
             tempNode.transform.localScale = new Vector2(1f, 1f);
             inGameNodes[node.key].Enqueue(tempNode);
         }
-
+        
+        UIManager.GetInstance().InitCharSprite(file.charNameLeft, file.charNameRight);
         nodeTransform.localPosition = new Vector3(0f, -DEFAULT_NODE_SIZE * MAGNIFICATION * 1.33f, 0f);
         pausedTime += 1.33f;
+        Invoke("PlayBgm", 1.33f);
         paused = false;
 
         startTimer.text = "3";
@@ -184,15 +195,19 @@ public class PatternManager : MonoBehaviour
         }
     }
 
+    public void PlayBgm()
+    {
+        SoundManager.GetInstance().PlayBgm();
+    }
+
     public void StartMaking()
     {
         if (progress != Progress.MAKING) return;
-        
-        if (paused) paused = false;
-        else
-        {
-            paused = true;
-        }
+
+        if (!paused) return;
+
+        paused = false;
+        PlayBgm();
     }
 
     public void SaveNodes()
@@ -221,21 +236,28 @@ public class PatternManager : MonoBehaviour
         if (timeGap <= DEFAULT_EXCELLENT_STANDARD
             && timeGap >= -DEFAULT_EXCELLENT_STANDARD)
         {
-            
+            excellentCount++;
         }
         else if (timeGap <= DEFAULT_GOOD_STANDARD
                  && timeGap >= -DEFAULT_GOOD_STANDARD)
-        {}
+        {
+            goodCount++;
+        }
         else if (timeGap <= DEFAULT_BAD_STANDARD
                  && timeGap >= -DEFAULT_BAD_STANDARD)
-        {}
+        {
+            badCount++;
+        }
         else if (timeGap <= DEFAULT_MISS_STANDARD
                  && timeGap <= -DEFAULT_MISS_STANDARD)
-        {}
+        {
+            missCount++;
+        }
         else { return; }
 
-        Debug.Log(timeGap);
+
         Destroy(inGameNodes[key].Dequeue().gameObject);
+        UIManager.GetInstance().UpdateScore(excellentCount, goodCount, badCount, missCount);
     }
 
     private void inactivateMissedNode()
@@ -244,7 +266,11 @@ public class PatternManager : MonoBehaviour
         {
             if (nodes.Count <= 0) continue;
             if (nodes.Peek().time + pausedTime - Time.time <= -DEFAULT_GOOD_STANDARD)
+            {
                 Destroy(nodes.Dequeue().gameObject);
+                missCount++;
+                UIManager.GetInstance().UpdateScore(excellentCount, goodCount, badCount, missCount);
+            }
         }
     }
 }
