@@ -45,6 +45,9 @@ public class PatternManager : MonoBehaviour
     private int goodCount;
     private int badCount;
     private int missCount;
+
+    private bool autoPlaying;
+    private float timeGap;
     
     public TMP_InputField toggleTimeText;
 
@@ -86,6 +89,25 @@ public class PatternManager : MonoBehaviour
             }
         }
 
+        if (autoPlaying)
+        {
+            foreach (KeyValuePair<KeyCode, Queue<NodeInstance>> node in inGameNodes)
+            {
+                if (node.Value.Count <= 0) return;
+                timeGap = node.Value.Peek().time + pausedTime - Time.time;
+                if (timeGap <= DEFAULT_EXCELLENT_STANDARD)
+                {
+                    excellentCount++;
+                    combo++;
+                    Destroy(node.Value.Dequeue().gameObject);
+                    leftCharacter.PlayAnimation(node.Key);
+                    rightCharacter.PlayAnimation(node.Key);
+                    UIManager.GetInstance().UpdateScore(excellentCount, goodCount, badCount, missCount);
+                    UIManager.GetInstance().UpdateCombo(combo, "Excellent!");
+                }
+            }
+        }
+
         if (progress == Progress.PLAYING) inactivateMissedNode();
     }
 
@@ -112,11 +134,15 @@ public class PatternManager : MonoBehaviour
         goodCount = 0;
         badCount = 0;
         missCount = 0;
+
+        autoPlaying = false;
+        timeGap = 0f;
         
         if (tempInfo.createMode) initMaking();
         else
         {
             initPlaying(tempInfo.id);
+            if (tempInfo.autoPlay) autoPlaying = true;
         }
     }
 
@@ -315,7 +341,7 @@ public class PatternManager : MonoBehaviour
     private void inputKey(KeyCode key)
     {
         if (inGameNodes[key].Count <= 0) return;
-        float timeGap = inGameNodes[key].Peek().time + pausedTime - Time.time;
+        timeGap = inGameNodes[key].Peek().time + pausedTime - Time.time;
         string currentResult;
         if (timeGap <= DEFAULT_EXCELLENT_STANDARD
             && timeGap >= -DEFAULT_EXCELLENT_STANDARD)
