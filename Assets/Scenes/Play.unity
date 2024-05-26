@@ -2460,6 +2460,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   leftCharacter: {fileID: 1618905809}
   rightCharacter: {fileID: 142434337}
+  toggleTimeText: {fileID: 0}
   nodePrefab: {fileID: 5571610837765671584, guid: 849502a2d11bacc40b4434976f977f6c, type: 3}
   nodeTransform: {fileID: 1239187137}
   startTimer: {fileID: 1036855073}
@@ -2777,7 +2778,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fdc8bab721128f544ac138ae3881a31e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  progress: {fileID: 253699769}
+  progressSlider: {fileID: 253699769}
   hp: {fileID: 643384868}
   timer: {fileID: 335580739}
   combo: {fileID: 447003866}
