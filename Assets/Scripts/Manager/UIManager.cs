@@ -11,14 +11,20 @@ public class UIManager : MonoBehaviour
     public Slider progress;
     public Slider hp;
     public TMP_Text timer;
-
+    public TMP_Text combo;
     public TMP_Text score;
+    public TMP_Text currentResult;
 
     public RawImage leftChar;
     public RawImage rightChar;
 
     private string cnl;
     private string cnr;
+
+    void Update()
+    {
+        progress.value += Time.deltaTime;
+    }
 
     public static UIManager GetInstance()
     {
@@ -27,8 +33,14 @@ public class UIManager : MonoBehaviour
         if (instance == null) Debug.Log("There's no active UIManager object");
         return instance;
     }
-    
-    public void Init(float maxHp) {}
+
+    public void Init(float duration, float maxHp)
+    {
+        progress.maxValue = duration;
+        progress.value = 0f;
+        hp.maxValue = maxHp;
+        hp.value = maxHp;
+    }
     
     public void UpdateSlider(float pregress, float currentHp) {}
 
@@ -43,12 +55,13 @@ public class UIManager : MonoBehaviour
             $"{excellentCount.ToString("D3")} : {goodCount.ToString("D3")} : {badCount.ToString("D3")} : {missCount.ToString("D3")}";
     }
 
-    public void InitCharSprite(string cnl, string cnr)
+    public void UpdateCombo(int count, string current)
     {
-        this.cnl = cnl;
-        this.cnr = cnr;
-        
-        leftChar.texture = Resources.Load<Texture>($"chars/{cnl}_idle");
-        rightChar.texture = Resources.Load<Texture>($"chars/{cnr}_idle");
+        if (count <= 0) combo.text = "";
+        else
+        {
+            combo.text = $"{count.ToString()} Combo!";
+        }
+        currentResult.text = current;
     }
 }
