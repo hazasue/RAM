@@ -10,13 +10,15 @@ public class GameFile
     public string bgmName;
     public string charNameLeft;
     public string charNameRight;
+    public string bg;
 
-    public GameFile(int id, string name, string bgmName, string charNameLeft, string charNameRight)
+    public GameFile(int id, string name, string bgmName, string charNameLeft, string charNameRight, string bg)
     {
         this.id = id;
         this.name = name;
         this.bgmName = bgmName;
         this.charNameLeft = charNameLeft;
         this.charNameRight = charNameRight;
+        this.bg = bg;
     }
 }

@@ -82,7 +82,7 @@ public class GameFileManager : MonoBehaviour
         }
     }
 
-    public void CreateGameFile(string name, string path, string cnl, string cnr)
+    public void CreateGameFile(string name, string path, string cnl, string cnr, string bg)
     {
         int tempKey = 0;
         foreach (int key in files.Keys)
@@ -90,7 +90,7 @@ public class GameFileManager : MonoBehaviour
             if (tempKey < key) tempKey = key;
         }
 
-        files.Add(++tempKey, new GameFile(tempKey, name, path, cnl, cnr));
+        files.Add(++tempKey, new GameFile(tempKey, name, path, cnl, cnr, bg));
         JsonManager.CreateJsonFile(JsonManager.DEFAULT_GAMEFILE_DATA_NAME, files);
 
         currentFileKey = tempKey;
@@ -109,7 +109,7 @@ public class GameFileManager : MonoBehaviour
         {
             GameFileInstance tempFile =
                 Instantiate(Resources.Load<GameFileInstance>("prefabs/GameFile"), gameFileTransform, true);
-            tempFile.Init(file.id, file.name);
+            tempFile.Init(file.id, file.name, file.bgmName);
         }
     }
 

@@ -7,15 +7,14 @@ using TMPro;
 public class GameFileInstance : MonoBehaviour
 {
     private int key;
-    
-    public TMP_Text id;
     public TMP_Text name;
+    public TMP_Text bgmName;
 
-    public void Init(int id, string name)
+    public void Init(int id, string name, string bgmName)
     {
         this.key = id;
-        this.id.text = $"{id}";
-        this.name.text = $"{name}";
+        this.name.text = $"Name: {name}";
+        this.bgmName.text = $"BGM: {bgmName}";
     }
 
     public void SelectFile() { GameFileManager.currentFileKey = key; }
