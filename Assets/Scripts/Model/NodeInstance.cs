@@ -44,5 +44,6 @@ public class NodeInstance : MonoBehaviour
 
         this.transform.position -=
             new Vector3(0f, PatternManager.DEFAULT_NODE_SIZE * PatternManager.MAGNIFICATION * scale, 0f);
+        UpdateCurrentSelectedNode();
     }
 }
