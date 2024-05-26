@@ -8,7 +8,7 @@ public class UIManager : MonoBehaviour
 {
     private static UIManager instance;
     
-    public Slider progress;
+    public Slider progressSlider;
     public Slider hp;
     public TMP_Text timer;
     public TMP_Text combo;
@@ -18,12 +18,12 @@ public class UIManager : MonoBehaviour
     public RawImage leftChar;
     public RawImage rightChar;
 
-    private string cnl;
-    private string cnr;
+    private PatternManager.Progress progress;
 
     void Update()
     {
-        progress.value += Time.deltaTime;
+        if (progress != PatternManager.Progress.PLAYING) return;
+        progressSlider.value += Time.deltaTime;
     }
 
     public static UIManager GetInstance()
@@ -34,12 +34,14 @@ public class UIManager : MonoBehaviour
         return instance;
     }
 
-    public void Init(float duration, float maxHp)
+    public void Init(float duration, float maxHp, PatternManager.Progress progress)
     {
-        progress.maxValue = duration;
-        progress.value = 0f;
+        progressSlider.maxValue = duration;
+        progressSlider.value = 0f;
         hp.maxValue = maxHp;
         hp.value = maxHp;
+
+        this.progress = progress;
     }
     
     public void UpdateSlider(float pregress, float currentHp) {}
