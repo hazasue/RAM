@@ -35,6 +35,8 @@ public class PatternManager : MonoBehaviour
     private List<Node> nodes;
     private List<Node> currentNodes;
     private Dictionary<KeyCode, Queue<NodeInstance>> inGameNodes;
+    private Queue<NodeInstance> makingNodes;
+    private NodeInstance currentNode;
     private List<Character> characters;
     public Character leftCharacter;
     public Character rightCharacter;
@@ -43,9 +45,12 @@ public class PatternManager : MonoBehaviour
     private int goodCount;
     private int badCount;
     private int missCount;
+    
+    public TMP_InputField toggleTimeText;
 
     public NodeInstance nodePrefab;
     public Transform nodeTransform;
+    public Transform nodeParentTransform;
     public TMP_Text startTimer;
     private float startTime;
 
@@ -100,6 +105,7 @@ public class PatternManager : MonoBehaviour
         paused = true;
         instance = this;
         SoundManager.GetInstance().InitBgm(file.bgmName);
+        Time.timeScale = 1f;
 
         combo = 0;
         excellentCount = 0;
@@ -118,6 +124,7 @@ public class PatternManager : MonoBehaviour
     {
         progress = Progress.MAKING;
         nodes = JsonManager.LoadJsonFile<List<Node>>(JsonManager.DEFAULT_NODE_DATA_NAME);
+        makingNodes = new Queue<NodeInstance>();
         currentNodes = new List<Node>();
         startTime = -1f;
     }
@@ -184,7 +191,7 @@ public class PatternManager : MonoBehaviour
         paused = false;
         duration += 6.33f;
 
-        UIManager.GetInstance().Init(duration, 100f);
+        UIManager.GetInstance().Init(duration, 100f, progress);
 
         startTimer.text = "3";
         startTime = 4f;
@@ -209,7 +216,7 @@ public class PatternManager : MonoBehaviour
 
     public void PlayBgm()
     {
-        SoundManager.GetInstance().PlayBgm();
+        SoundManager.GetInstance().PlayBgm(true);
     }
 
     public void StartMaking()
@@ -218,18 +225,38 @@ public class PatternManager : MonoBehaviour
 
         if (!paused) return;
 
+        Time.timeScale = 1f;
+
+        nodeParentTransform.localPosition = new Vector3(400f, 0f, 0f);
+
         paused = false;
         PlayBgm();
+    }
+
+    public void EndMaking()
+    {
+        if (progress != Progress.MAKING) return;
+
+        if (paused) return;
+
+        paused = true;
+        Time.timeScale = 0f;
+        SoundManager.GetInstance().PlayBgm(false);
     }
 
     public void SaveNodes()
     {
         if (progress != Progress.MAKING) return;
-        
-        foreach (Node node in currentNodes)
+
+        foreach (NodeInstance node in makingNodes)
         {
-            nodes.Add(node);
+            nodes.Add(new Node(file.id, node.time, node.key, 0, 0, ""));
         }
+        
+        //foreach (Node node in currentNodes)
+        //{
+        //    nodes.Add(node);
+        //}
 
         JsonManager.CreateJsonFile(JsonManager.DEFAULT_NODE_DATA_NAME, nodes);
     }
@@ -237,9 +264,53 @@ public class PatternManager : MonoBehaviour
     private void addPattern(KeyCode key)
     {
         if (paused) return;
+        
+        NodeInstance tempNode;
+        float xPos = 0f;
+        
+        switch (key)
+        {
+            case KeyCode.D:
+                xPos = DEFAULT_NODE_X_POS_D;
+                break;
+
+            case KeyCode.F:
+                xPos = DEFAULT_NODE_X_POS_F;
+                break;
+
+            case KeyCode.J:
+                xPos = DEFAULT_NODE_X_POS_J;
+                break;
+
+            case KeyCode.K:
+                xPos = DEFAULT_NODE_X_POS_K;
+                break;
+
+            default:
+                break;
+        }
+
+        tempNode = Instantiate(nodePrefab, this.transform, true);
+        tempNode.InitMaking(Time.time - pausedTime, key, xPos, nodeTransform);
+        tempNode.transform.localScale = new Vector2(1f, 1f);
+        makingNodes.Enqueue(tempNode);
+        //inGameNodes[node.key].Enqueue(tempNode);
 
         currentNodes.Add(new Node(file.id, Time.time - pausedTime, key, 0, 0, ""));
     }
+
+    public void UpdateMakingNodeInfo(NodeInstance node)
+    {
+        currentNode = node;
+    }
+
+    public void ToggleNodeTime()
+    {
+        if (currentNode == null) return;
+
+        currentNode.ToggleTime(float.Parse(toggleTimeText.text));
+    }
+    
 
     private void inputKey(KeyCode key)
     {
