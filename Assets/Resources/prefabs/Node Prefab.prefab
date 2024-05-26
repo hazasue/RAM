@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 8504006912181326895}
   - component: {fileID: 8229505547593563402}
   - component: {fileID: 5571610837765671584}
+  - component: {fileID: 7353227247863209268}
   m_Layer: 5
   m_Name: Node Prefab
   m_TagString: Untagged
@@ -60,7 +61,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 0.9468432, b: 0, a: 1}
+  m_Color: {r: 0.3735849, g: 0.9339623, b: 0.7950983, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -86,3 +87,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d0482da98b6e04047b5c6d44acd6bc47, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  time: 0
+  key: 0
+--- !u!114 &7353227247863209268
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7684476591469176121}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e19747de3f5aca642ab2be37e372fb86, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_EffectColor: {r: 1, g: 1, b: 1, a: 1}
+  m_EffectDistance: {x: 10, y: 10}
+  m_UseGraphicAlpha: 1
