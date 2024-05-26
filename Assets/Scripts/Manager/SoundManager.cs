@@ -36,7 +36,14 @@ public class SoundManager : MonoBehaviour
         audioSource.clip = bgm;
     }
 
-    public void PlayBgm() { audioSource.Play(); }
+    public void PlayBgm(bool _bool)
+    {
+        if(_bool) audioSource.Play();
+        else
+        {
+            audioSource.Pause();
+        }
+    }
     
     public void PlaySfx(AudioClip audioClip) {}
 }
