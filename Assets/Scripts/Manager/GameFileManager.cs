@@ -58,7 +58,7 @@ public class GameFileManager : MonoBehaviour
 
         if (!File.Exists(Application.dataPath + "/Data/" + JsonManager.DEFAULT_CURRENT_INFO_NAME + ".json"))
         {
-            JsonManager.CreateJsonFile(JsonManager.DEFAULT_CURRENT_INFO_NAME, new CurrentInfo(-1, false));
+            JsonManager.CreateJsonFile(JsonManager.DEFAULT_CURRENT_INFO_NAME, new CurrentInfo(-1, false, false));
         }
 
         if (!File.Exists(Application.dataPath + "/Data/" + JsonManager.DEFAULT_NODE_DATA_NAME + ".json"))
@@ -95,7 +95,7 @@ public class GameFileManager : MonoBehaviour
 
         currentFileKey = tempKey;
         
-        JsonManager.CreateJsonFile(JsonManager.DEFAULT_CURRENT_INFO_NAME, new CurrentInfo(currentFileKey, true));
+        JsonManager.CreateJsonFile(JsonManager.DEFAULT_CURRENT_INFO_NAME, new CurrentInfo(currentFileKey, true, false));
     }
 
     private void instantiateGameFileObjects()
@@ -115,6 +115,29 @@ public class GameFileManager : MonoBehaviour
 
     public void LoadGameFile()
     {
-        JsonManager.CreateJsonFile(JsonManager.DEFAULT_CURRENT_INFO_NAME, new CurrentInfo(currentFileKey, false));
+        JsonManager.CreateJsonFile(JsonManager.DEFAULT_CURRENT_INFO_NAME, new CurrentInfo(currentFileKey, false, false));
+    }
+
+    public void DeleteGameFile()
+    {
+        files.Remove(currentFileKey);
+
+        List<Node> nodes = JsonManager.LoadJsonFile<List<Node>>(JsonManager.DEFAULT_NODE_DATA_NAME);
+        for (int i = nodes.Count - 1; i >= 0; i--)
+        {
+            if (nodes[i].file == currentFileKey) nodes.RemoveAt(i);
+        }
+        
+        JsonManager.CreateJsonFile(JsonManager.DEFAULT_GAMEFILE_DATA_NAME, files);
+        JsonManager.CreateJsonFile(JsonManager.DEFAULT_NODE_DATA_NAME, nodes);
+        
+        currentFileKey = -1;
+        
+        instantiateGameFileObjects();
+    }
+
+    public void PlayAutoGameFile()
+    {
+        JsonManager.CreateJsonFile(JsonManager.DEFAULT_CURRENT_INFO_NAME, new CurrentInfo(currentFileKey, false, true));
     }
 }
