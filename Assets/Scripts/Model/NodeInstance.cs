@@ -18,7 +18,7 @@ public class NodeInstance : MonoBehaviour
     {
         this.time = time;
         this.key = key;
-        this.transform.parent = parent;
+        this.transform.SetParent(parent);
 
         this.transform.localPosition = new Vector3(xPos, -time * PatternManager.DEFAULT_NODE_SIZE * PatternManager.MAGNIFICATION, 0f);
     }
