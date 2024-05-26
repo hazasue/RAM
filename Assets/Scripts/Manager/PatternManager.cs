@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
+using UnityEngine.SceneManagement;
 
 public class PatternManager : MonoBehaviour
 {
@@ -35,6 +36,8 @@ public class PatternManager : MonoBehaviour
     private List<Node> currentNodes;
     private Dictionary<KeyCode, Queue<NodeInstance>> inGameNodes;
     private List<Character> characters;
+    public Character leftCharacter;
+    public Character rightCharacter;
 
     private int excellentCount;
     private int goodCount;
@@ -98,6 +101,7 @@ public class PatternManager : MonoBehaviour
         instance = this;
         SoundManager.GetInstance().InitBgm(file.bgmName);
 
+        combo = 0;
         excellentCount = 0;
         goodCount = 0;
         badCount = 0;
@@ -120,6 +124,8 @@ public class PatternManager : MonoBehaviour
 
     private void initPlaying(int id)
     {
+        float duration = 0f;
+        
         progress = Progress.PLAYING;
         nodes = JsonManager.LoadJsonFile<List<Node>>(JsonManager.DEFAULT_NODE_DATA_NAME);
 
@@ -166,13 +172,19 @@ public class PatternManager : MonoBehaviour
             tempNode.Init(node.time, node.key, xPos, nodeTransform);
             tempNode.transform.localScale = new Vector2(1f, 1f);
             inGameNodes[node.key].Enqueue(tempNode);
+
+            duration = node.time;
         }
         
-        UIManager.GetInstance().InitCharSprite(file.charNameLeft, file.charNameRight);
+        leftCharacter.Init(file.charNameLeft);
+        rightCharacter.Init(file.charNameRight);
         nodeTransform.localPosition = new Vector3(0f, -DEFAULT_NODE_SIZE * MAGNIFICATION * 1.33f, 0f);
         pausedTime += 1.33f;
         Invoke("PlayBgm", 1.33f);
         paused = false;
+        duration += 6.33f;
+
+        UIManager.GetInstance().Init(duration, 100f);
 
         startTimer.text = "3";
         startTime = 4f;
@@ -233,31 +245,43 @@ public class PatternManager : MonoBehaviour
     {
         if (inGameNodes[key].Count <= 0) return;
         float timeGap = inGameNodes[key].Peek().time + pausedTime - Time.time;
+        string currentResult;
         if (timeGap <= DEFAULT_EXCELLENT_STANDARD
             && timeGap >= -DEFAULT_EXCELLENT_STANDARD)
         {
             excellentCount++;
+            currentResult = "Excellent!";
+            combo++;
         }
         else if (timeGap <= DEFAULT_GOOD_STANDARD
                  && timeGap >= -DEFAULT_GOOD_STANDARD)
         {
             goodCount++;
+            currentResult = "Good!";
+            combo++;
         }
         else if (timeGap <= DEFAULT_BAD_STANDARD
                  && timeGap >= -DEFAULT_BAD_STANDARD)
         {
             badCount++;
+            currentResult = "Bad..";
+            combo++;
         }
         else if (timeGap <= DEFAULT_MISS_STANDARD
                  && timeGap <= -DEFAULT_MISS_STANDARD)
         {
             missCount++;
+            currentResult = "MISS";
+            combo = 0;
         }
         else { return; }
 
 
         Destroy(inGameNodes[key].Dequeue().gameObject);
+        leftCharacter.PlayAnimation(key);
+        rightCharacter.PlayAnimation(key);
         UIManager.GetInstance().UpdateScore(excellentCount, goodCount, badCount, missCount);
+        UIManager.GetInstance().UpdateCombo(combo, currentResult);
     }
 
     private void inactivateMissedNode()
@@ -269,8 +293,16 @@ public class PatternManager : MonoBehaviour
             {
                 Destroy(nodes.Dequeue().gameObject);
                 missCount++;
+                combo = 0;
+                
+                UIManager.GetInstance().UpdateCombo(combo, "MISS");
                 UIManager.GetInstance().UpdateScore(excellentCount, goodCount, badCount, missCount);
             }
         }
+    }
+    
+    public void BackToLobby()
+    {
+        SceneManager.LoadScene("Lobby");
     }
 }
