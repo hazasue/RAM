@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 using TMPro;
 using UnityEngine.SceneManagement;
 
@@ -40,6 +41,7 @@ public class PatternManager : MonoBehaviour
     private List<Character> characters;
     public Character leftCharacter;
     public Character rightCharacter;
+    public RawImage bg;
 
     private int excellentCount;
     private int goodCount;
@@ -56,6 +58,9 @@ public class PatternManager : MonoBehaviour
     public Transform nodeParentTransform;
     public TMP_Text startTimer;
     private float startTime;
+
+    public TMP_Text nodeTimeText;
+    public TMP_Text nodeKeyCodeText;
 
     private Progress progress;
     private SoundManager soundManager;
@@ -211,11 +216,12 @@ public class PatternManager : MonoBehaviour
         
         leftCharacter.Init(file.charNameLeft);
         rightCharacter.Init(file.charNameRight);
+        bg.texture = Resources.Load<Texture>($"bg/{file.bg}");
         nodeTransform.localPosition = new Vector3(0f, -DEFAULT_NODE_SIZE * MAGNIFICATION * 1.33f, 0f);
         pausedTime += 1.33f;
         Invoke("PlayBgm", 1.33f);
         paused = false;
-        duration += 6.33f;
+        duration += 4.33f;
 
         UIManager.GetInstance().Init(duration, 100f, progress);
 
@@ -328,6 +334,9 @@ public class PatternManager : MonoBehaviour
     public void UpdateMakingNodeInfo(NodeInstance node)
     {
         currentNode = node;
+
+        nodeTimeText.text = $"Time: {node.time.ToString("F3")}";
+        nodeKeyCodeText.text = $"KeyCode: {node.key.ToString()}";
     }
 
     public void ToggleNodeTime()
@@ -348,6 +357,7 @@ public class PatternManager : MonoBehaviour
         {
             excellentCount++;
             currentResult = "Excellent!";
+            UIManager.GetInstance().GiveDamage(-3f);
             combo++;
         }
         else if (timeGap <= DEFAULT_GOOD_STANDARD
@@ -369,6 +379,7 @@ public class PatternManager : MonoBehaviour
         {
             missCount++;
             currentResult = "MISS";
+            UIManager.GetInstance().GiveDamage(10f);
             combo = 0;
         }
         else { return; }
@@ -391,6 +402,7 @@ public class PatternManager : MonoBehaviour
                 Destroy(nodes.Dequeue().gameObject);
                 missCount++;
                 combo = 0;
+                UIManager.GetInstance().GiveDamage(10f);
                 
                 UIManager.GetInstance().UpdateCombo(combo, "MISS");
                 UIManager.GetInstance().UpdateScore(excellentCount, goodCount, badCount, missCount);
