@@ -89,6 +89,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   time: 0
+  duration: 0
   key: 0
 --- !u!114 &7353227247863209268
 MonoBehaviour:
