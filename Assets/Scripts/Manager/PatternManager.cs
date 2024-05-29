@@ -62,6 +62,9 @@ public class PatternManager : MonoBehaviour
     public TMP_Text nodeTimeText;
     public TMP_Text nodeKeyCodeText;
 
+    private Dictionary<KeyCode, float> pressedDuration;
+    private Dictionary<KeyCode, NodeInstance> tempNodeInstance;
+
     private Progress progress;
     private SoundManager soundManager;
     private InputManager inputManager;
@@ -98,13 +101,26 @@ public class PatternManager : MonoBehaviour
         {
             foreach (KeyValuePair<KeyCode, Queue<NodeInstance>> node in inGameNodes)
             {
-                if (node.Value.Count <= 0) return;
+                if (node.Value.Count <= 0) continue;
+                
                 timeGap = node.Value.Peek().time + pausedTime - Time.time;
+
                 if (timeGap <= DEFAULT_EXCELLENT_STANDARD)
                 {
                     excellentCount++;
                     combo++;
-                    Destroy(node.Value.Dequeue().gameObject);
+                    
+                    if (node.Value.Peek().duration >= 1f / MAGNIFICATION)
+                    {
+                        node.Value.Peek().time += node.Value.Peek().duration;
+                        node.Value.Peek().duration = 0f;
+                        node.Value.Peek().PressingNode();
+                    }
+                    else
+                    {
+                        Destroy(node.Value.Dequeue().gameObject);
+                    }
+
                     leftCharacter.PlayAnimation(node.Key);
                     rightCharacter.PlayAnimation(node.Key);
                     UIManager.GetInstance().UpdateScore(excellentCount, goodCount, badCount, missCount);
@@ -132,6 +148,12 @@ public class PatternManager : MonoBehaviour
         paused = true;
         instance = this;
         SoundManager.GetInstance().InitBgm(file.bgmName);
+        pressedDuration = new Dictionary<KeyCode, float>();
+        pressedDuration.Add(KeyCode.D, 0f);
+        pressedDuration.Add(KeyCode.F, 0f);
+        pressedDuration.Add(KeyCode.J, 0f);
+        pressedDuration.Add(KeyCode.K, 0f);
+        tempNodeInstance = new Dictionary<KeyCode, NodeInstance>();
         Time.timeScale = 1f;
 
         combo = 0;
@@ -208,10 +230,11 @@ public class PatternManager : MonoBehaviour
 
             tempNode = Instantiate(nodePrefab, this.transform, true);
             tempNode.Init(node.time, node.key, xPos, nodeTransform);
+            tempNode.InitDuration(node.duration);
             tempNode.transform.localScale = new Vector2(1f, 1f);
             inGameNodes[node.key].Enqueue(tempNode);
 
-            duration = node.time;
+            duration = node.time + node.duration;
         }
         
         leftCharacter.Init(file.charNameLeft);
@@ -229,16 +252,22 @@ public class PatternManager : MonoBehaviour
         startTime = 4f;
     }
 
-    public void HandleKeyInput(List<KeyCode> keys)
+    public void HandleKeyInput(Dictionary<KeyCode, bool> keys)
     {
         switch (progress)
         {
             case Progress.MAKING:
-                foreach (KeyCode key in keys) { addPattern(key); }
+                foreach (KeyValuePair<KeyCode, bool> key in keys)
+                {
+                    addPattern(key.Key, key.Value);
+                }
                 break;
             
             case Progress.PLAYING:
-                foreach (KeyCode key in keys) { inputKey(key); }
+                foreach (KeyValuePair<KeyCode, bool> key in keys)
+                {
+                    inputKey(key.Key, key.Value);
+                }
                 break;
             
             default:
@@ -282,7 +311,7 @@ public class PatternManager : MonoBehaviour
 
         foreach (NodeInstance node in makingNodes)
         {
-            nodes.Add(new Node(file.id, node.time, node.key, 0, 0, ""));
+            nodes.Add(new Node(file.id, node.time, node.duration, node.key, 0, 0, ""));
         }
         
         //foreach (Node node in currentNodes)
@@ -293,11 +322,18 @@ public class PatternManager : MonoBehaviour
         JsonManager.CreateJsonFile(JsonManager.DEFAULT_NODE_DATA_NAME, nodes);
     }
 
-    private void addPattern(KeyCode key)
+    private void addPattern(KeyCode key, bool pressing)
     {
         if (paused) return;
-        
-        NodeInstance tempNode;
+        if (!pressing && pressedDuration[key] > 0f)
+        {
+            pressedDuration[key] = Time.time - pausedTime - pressedDuration[key];
+            currentNodes.Add(new Node(file.id, pressedDuration[key], Time.time - pausedTime - pressedDuration[key], key, 0, 0, ""));
+            tempNodeInstance[key].InitDuration(pressedDuration[key]);
+            pressedDuration[key] = 0f;
+            return;
+        }
+        else if (!pressing) return;
         float xPos = 0f;
         
         switch (key)
@@ -322,13 +358,15 @@ public class PatternManager : MonoBehaviour
                 break;
         }
 
-        tempNode = Instantiate(nodePrefab, this.transform, true);
-        tempNode.InitMaking(Time.time - pausedTime, key, xPos, nodeTransform);
-        tempNode.transform.localScale = new Vector2(1f, 1f);
-        makingNodes.Enqueue(tempNode);
-        //inGameNodes[node.key].Enqueue(tempNode);
-
-        currentNodes.Add(new Node(file.id, Time.time - pausedTime, key, 0, 0, ""));
+        if (pressedDuration[key] <= 0f)
+        {
+            tempNodeInstance[key] = Instantiate(nodePrefab, this.transform, true);
+            tempNodeInstance[key].InitMaking(Time.time - pausedTime, key, xPos, nodeTransform);
+            tempNodeInstance[key].transform.localScale = new Vector2(1f, 1f);
+            makingNodes.Enqueue(tempNodeInstance[key]);
+            pressedDuration[key] = Time.time - pausedTime;
+            return;
+        }
     }
 
     public void UpdateMakingNodeInfo(NodeInstance node)
@@ -347,57 +385,112 @@ public class PatternManager : MonoBehaviour
     }
     
 
-    private void inputKey(KeyCode key)
+    private void inputKey(KeyCode key, bool pressing)
     {
         if (inGameNodes[key].Count <= 0) return;
-        timeGap = inGameNodes[key].Peek().time + pausedTime - Time.time;
+        
+        if (pressing && pressedDuration[key] <= 0f) timeGap = inGameNodes[key].Peek().time + pausedTime - Time.time;
+        else if (!pressing && pressedDuration[key] > 0f)
+        {
+            timeGap = inGameNodes[key].Peek().time + inGameNodes[key].Peek().duration + pausedTime - Time.time;
+            if (timeGap >= DEFAULT_GOOD_STANDARD)
+            {
+                missCount++;
+                UIManager.GetInstance().GiveDamage(10f);
+                combo = 0;
+                UIManager.GetInstance().UpdateScore(excellentCount, goodCount, badCount, missCount);
+                UIManager.GetInstance().UpdateCombo(combo, "MISS");
+                leftCharacter.PlayAnimation(key);
+                rightCharacter.PlayAnimation(key);
+                Destroy(inGameNodes[key].Dequeue().gameObject);
+                return;
+            }
+        }
+        else if (!pressing) return;
+
         string currentResult;
-        if (timeGap <= DEFAULT_EXCELLENT_STANDARD
-            && timeGap >= -DEFAULT_EXCELLENT_STANDARD)
+        if ((pressing && pressedDuration[key] <= 0f)
+            || !pressing && pressedDuration[key] > 0f)
         {
-            excellentCount++;
-            currentResult = "Excellent!";
-            UIManager.GetInstance().GiveDamage(-3f);
-            combo++;
-        }
-        else if (timeGap <= DEFAULT_GOOD_STANDARD
-                 && timeGap >= -DEFAULT_GOOD_STANDARD)
-        {
-            goodCount++;
-            currentResult = "Good!";
-            combo++;
-        }
-        else if (timeGap <= DEFAULT_BAD_STANDARD
-                 && timeGap >= -DEFAULT_BAD_STANDARD)
-        {
-            badCount++;
-            currentResult = "Bad..";
-            combo++;
-        }
-        else if (timeGap <= DEFAULT_MISS_STANDARD
-                 && timeGap <= -DEFAULT_MISS_STANDARD)
-        {
-            missCount++;
-            currentResult = "MISS";
-            UIManager.GetInstance().GiveDamage(10f);
-            combo = 0;
-        }
-        else { return; }
+            if (timeGap <= DEFAULT_EXCELLENT_STANDARD
+                && timeGap >= -DEFAULT_EXCELLENT_STANDARD)
+            {
+                excellentCount++;
+                currentResult = "Excellent!";
+                UIManager.GetInstance().GiveDamage(-3f);
+                combo++;
+            }
+            else if (timeGap <= DEFAULT_GOOD_STANDARD
+                     && timeGap >= -DEFAULT_GOOD_STANDARD)
+            {
+                goodCount++;
+                currentResult = "Good!";
+                combo++;
+            }
+            else if (timeGap <= DEFAULT_BAD_STANDARD
+                     && timeGap >= -DEFAULT_BAD_STANDARD)
+            {
+                badCount++;
+                currentResult = "Bad..";
+                combo++;
+            }
+            else if (timeGap <= DEFAULT_MISS_STANDARD
+                     && timeGap <= -DEFAULT_MISS_STANDARD)
+            {
+                missCount++;
+                currentResult = "MISS";
+                UIManager.GetInstance().GiveDamage(10f);
+                combo = 0;
+            }
+            else
+            {
+                return;
+            }
 
+            bool keepGoing = true;
+            
+            if (inGameNodes[key].Peek().duration <= 1f / MAGNIFICATION && pressing)
+            {
+                Destroy(inGameNodes[key].Dequeue().gameObject);
+                pressedDuration[key] = 0f;
+                keepGoing = false;
+            }
+            else if (inGameNodes[key].Peek().duration > 1f / MAGNIFICATION && !pressing)
+            {
+                Destroy(inGameNodes[key].Dequeue().gameObject);
+                pressedDuration[key] = 0f;
+                keepGoing = false;
+            }
+            else if (inGameNodes[key].Peek().duration > 1f / MAGNIFICATION && pressing)
+            {
+                inGameNodes[key].Peek().PressingNode();
+            }
 
-        Destroy(inGameNodes[key].Dequeue().gameObject);
-        leftCharacter.PlayAnimation(key);
-        rightCharacter.PlayAnimation(key);
-        UIManager.GetInstance().UpdateScore(excellentCount, goodCount, badCount, missCount);
-        UIManager.GetInstance().UpdateCombo(combo, currentResult);
+            UIManager.GetInstance().UpdateScore(excellentCount, goodCount, badCount, missCount);
+            UIManager.GetInstance().UpdateCombo(combo, currentResult);
+            leftCharacter.PlayAnimation(key);
+            rightCharacter.PlayAnimation(key);
+            if (!keepGoing) return;
+            
+            
+            pressedDuration[key] = 0.1f;
+        }
     }
 
     private void inactivateMissedNode()
     {
+        float tempTime = 0f;
         foreach (Queue<NodeInstance> nodes in inGameNodes.Values)
         {
             if (nodes.Count <= 0) continue;
-            if (nodes.Peek().time + pausedTime - Time.time <= -DEFAULT_GOOD_STANDARD)
+            
+            if (nodes.Peek().duration <= 1f / MAGNIFICATION) tempTime = nodes.Peek().time + pausedTime - Time.time;
+            else if (nodes.Peek().duration > 1f / MAGNIFICATION)
+            {
+                tempTime = nodes.Peek().time + nodes.Peek().duration + pausedTime - Time.time;
+            }
+                
+            if (tempTime <= -DEFAULT_GOOD_STANDARD)
             {
                 Destroy(nodes.Dequeue().gameObject);
                 missCount++;
