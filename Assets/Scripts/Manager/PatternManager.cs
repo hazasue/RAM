@@ -393,6 +393,7 @@ public class PatternManager : MonoBehaviour
         else if (!pressing && pressedDuration[key] > 0f)
         {
             timeGap = inGameNodes[key].Peek().time + inGameNodes[key].Peek().duration + pausedTime - Time.time;
+            /*
             if (timeGap >= DEFAULT_GOOD_STANDARD)
             {
                 missCount++;
@@ -405,6 +406,7 @@ public class PatternManager : MonoBehaviour
                 Destroy(inGameNodes[key].Dequeue().gameObject);
                 return;
             }
+            */
         }
         else if (!pressing) return;
 
